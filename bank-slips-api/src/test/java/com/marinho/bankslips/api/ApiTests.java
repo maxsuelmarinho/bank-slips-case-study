@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
+import com.marinho.bankslips.exception.BankSlipNotFoundException;
 import com.marinho.bankslips.service.BankSlipService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +25,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -109,7 +111,7 @@ public class ApiTests {
     }
 
     @Test
-    public void retriveBankSlip() throws Exception {
+    public void retrieveBankSlip() throws Exception {
         final String bankSlipId = "qweqweqwe";
 
         final BankSlipResponse mockResponse = BankSlipResponse.builder()
@@ -128,6 +130,16 @@ public class ApiTests {
 
         final String expected = "{id:\"qweqweqwe\",due_date:\"2018-09-13\",total_in_cents:\"1000000001\",customer:\"Real Company\",status:\"PENDING\"}";
         JSONAssert.assertEquals(expected, result.getResponse().getContentAsString(), false);
+    }
+
+    @Test
+    public void retrieveBankSlipShouldReturnNotFound() throws Exception {
+        final String bankSlipId = "zxczxczxc";
+
+        doThrow(BankSlipNotFoundException.class).when(service).findById(bankSlipId);
+
+        mvc.perform(get("/" + bankSlipId).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -154,6 +166,16 @@ public class ApiTests {
     }
 
     @Test
+    public void payBankSlipShouldReturnNotFound() throws Exception {
+        final String bankSlipId = "zxczxczxc";
+
+        doThrow(BankSlipNotFoundException.class).when(service).pay(bankSlipId);
+
+        mvc.perform(put("/" + bankSlipId + "/payments"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     public void cancelBankSlip() throws Exception {
         final String bankSlipId = "asdasdasd";
 
@@ -174,5 +196,15 @@ public class ApiTests {
                 .andExpect(status().isNoContent());
 
         assertEquals("CANCELED", mockResponse.getStatus());
+    }
+
+    @Test
+    public void cancelBankSlipShouldReturnNotFound() throws Exception {
+        final String bankSlipId = "zxczxczxc";
+
+        doThrow(BankSlipNotFoundException.class).when(service).cancel(bankSlipId);
+
+        mvc.perform(delete("/" + bankSlipId))
+                .andExpect(status().isNotFound());
     }
 }
