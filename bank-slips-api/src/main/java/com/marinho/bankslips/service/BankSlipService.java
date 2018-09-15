@@ -2,9 +2,10 @@ package com.marinho.bankslips.service;
 
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
+import com.marinho.bankslips.exception.BankSlipNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -12,24 +13,24 @@ import java.util.UUID;
 @Service
 public class BankSlipService {
 
-    private List<BankSlipResponse> bankSlips;
+    private List<BankSlipResponse> bankSlips = new ArrayList<>();
 
     BankSlipService() {
-        bankSlips = Arrays.asList(
-                BankSlipResponse.builder()
-                        .id("asdasdasd")
-                        .dueDate("2018-09-12")
-                        .totalInCents("1000000000")
-                        .customer("Fake Company")
-                        .status("PENDING")
-                        .build(),
-                BankSlipResponse.builder()
-                        .id("qweqweqwe")
-                        .dueDate("2018-09-13")
-                        .totalInCents("1000000001")
-                        .customer("Real Company")
-                        .status("PENDING")
-                        .build());
+        bankSlips.add(BankSlipResponse.builder()
+                .id("asdasdasd")
+                .dueDate("2018-09-12")
+                .totalInCents("1000000000")
+                .customer("Fake Company")
+                .status("PENDING")
+                .build());
+
+        bankSlips.add(BankSlipResponse.builder()
+                .id("qweqweqwe")
+                .dueDate("2018-09-13")
+                .totalInCents("1000000001")
+                .customer("Real Company")
+                .status("PENDING")
+                .build());
     }
 
 
@@ -55,12 +56,18 @@ public class BankSlipService {
         return this.bankSlips.stream()
                 .filter(it -> it.getId().equals(id))
                 .findFirst()
-                .get();
+                .orElseThrow(BankSlipNotFoundException::new);
     }
 
     public void pay(final String id) {
         final BankSlipResponse bankSlip = findById(id);
 
         bankSlip.setStatus("PAID");
+    }
+
+    public void cancel(String id) {
+        final BankSlipResponse bankSlip = findById(id);
+
+        bankSlip.setStatus("CANCELED");
     }
 }

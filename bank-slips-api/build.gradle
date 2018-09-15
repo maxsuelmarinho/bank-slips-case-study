@@ -23,6 +23,11 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    junitJupiterVersion = "5.3.+"
+    mockitoVersion = "2.22.+"
+}
+
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-actuator')
     compile('org.springframework.boot:spring-boot-starter-data-jpa')
@@ -34,6 +39,11 @@ dependencies {
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('com.h2database:h2')
 
-    testCompile('org.springframework.boot:spring-boot-starter-test')
-    testCompile('com.github.javafaker:javafaker:0.16')
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+    testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+    testCompile("org.mockito:mockito-core:$mockitoVersion")
+    testCompile("org.mockito:mockito-junit-jupiter:$mockitoVersion")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("com.github.javafaker:javafaker:0.16")
 }

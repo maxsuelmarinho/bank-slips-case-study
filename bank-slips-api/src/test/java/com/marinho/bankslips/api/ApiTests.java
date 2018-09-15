@@ -5,12 +5,8 @@ import com.github.javafaker.Faker;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
 import com.marinho.bankslips.service.BankSlipService;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Answers;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -28,11 +24,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -158,5 +151,28 @@ public class ApiTests {
                 .andExpect(status().isNoContent());
 
         assertEquals("PAID", mockResponse.getStatus());
+    }
+
+    @Test
+    public void cancelBankSlip() throws Exception {
+        final String bankSlipId = "asdasdasd";
+
+        final BankSlipResponse mockResponse = BankSlipResponse.builder()
+                .id(bankSlipId)
+                .dueDate("2018-09-12")
+                .totalInCents("1000000000")
+                .customer("Fake Company")
+                .status("PENDING")
+                .build();
+
+        doAnswer(it -> {
+            mockResponse.setStatus("CANCELED");
+            return null;
+        }).when(service).cancel(bankSlipId);
+
+        mvc.perform(delete("/" + bankSlipId))
+                .andExpect(status().isNoContent());
+
+        assertEquals("CANCELED", mockResponse.getStatus());
     }
 }
