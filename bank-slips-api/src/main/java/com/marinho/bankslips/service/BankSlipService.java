@@ -5,6 +5,8 @@ import com.marinho.bankslips.dto.BankSlipResponse;
 import com.marinho.bankslips.exception.BankSlipNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -18,16 +20,16 @@ public class BankSlipService {
     BankSlipService() {
         bankSlips.add(BankSlipResponse.builder()
                 .id("asdasdasd")
-                .dueDate("2018-09-12")
-                .totalInCents("1000000000")
+                .dueDate(LocalDate.of(2018, 9, 12))
+                .totalInCents(new BigDecimal("1000000000"))
                 .customer("Fake Company")
                 .status("PENDING")
                 .build());
 
         bankSlips.add(BankSlipResponse.builder()
                 .id("qweqweqwe")
-                .dueDate("2018-09-13")
-                .totalInCents("1000000001")
+                .dueDate(LocalDate.of(2018, 9, 12))
+                .totalInCents(new BigDecimal("1000000001"))
                 .customer("Real Company")
                 .status("PENDING")
                 .build());

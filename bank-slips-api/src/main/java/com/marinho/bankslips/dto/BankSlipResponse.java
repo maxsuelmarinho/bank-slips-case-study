@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,10 +18,10 @@ public class BankSlipResponse {
     private String id;
 
     @JsonProperty("due_date")
-    private String dueDate;
+    private LocalDate dueDate;
 
     @JsonProperty("total_in_cents")
-    private String totalInCents;
+    private BigDecimal totalInCents;
 
     private String customer;
 

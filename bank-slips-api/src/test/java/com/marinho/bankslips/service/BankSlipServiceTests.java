@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collection;
 
 import static org.junit.Assert.*;
@@ -40,8 +42,8 @@ public class BankSlipServiceTests {
     public void createBankSlip() {
         BankSlipRequest request = BankSlipRequest.builder()
                 .customer(faker.company().name())
-                .dueDate("2018-09-12")
-                .totalInCents(faker.numerify("#########"))
+                .dueDate(LocalDate.of(2018, 9, 12))
+                .totalInCents(new BigDecimal(faker.numerify("#########")))
                 .build();
 
         BankSlipResponse response = service.create(request);

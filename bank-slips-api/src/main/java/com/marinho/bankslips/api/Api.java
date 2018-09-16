@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.validation.Valid;
 import java.net.URI;
 import java.util.Collection;
 
@@ -24,7 +25,7 @@ public class Api {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody final BankSlipRequest request) {
+    public ResponseEntity<?> create(@Valid @RequestBody final BankSlipRequest request) {
 
         final BankSlipResponse response = service.create(request);
 

@@ -7,6 +7,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,10 +22,15 @@ public class BankSlipRequest {
 
     @JsonProperty("due_date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Brazil/East", locale = "pt-BR")
-    private String dueDate;
+    @FutureOrPresent
+    @NotNull
+    private LocalDate dueDate;
 
     @JsonProperty("total_in_cents")
-    private String totalInCents;
+    @NotNull
+    @Positive
+    private BigDecimal totalInCents;
 
+    @NotBlank
     private String customer;
 }

@@ -17,6 +17,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -24,9 +26,7 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -49,10 +49,11 @@ public class ApiTests {
     @Test
     public void createBankSlip() throws Exception {
 
+        final LocalDate tomorrow = LocalDate.now().plusDays(1);
         BankSlipRequest request = BankSlipRequest.builder()
                 .customer(faker.company().name())
-                .dueDate("2018-09-12")
-                .totalInCents(faker.numerify("#########"))
+                .dueDate(tomorrow)
+                .totalInCents(new BigDecimal(faker.numerify("#########")))
                 .build();
 
         final BankSlipResponse mockResponse = BankSlipResponse.builder()
@@ -72,10 +73,75 @@ public class ApiTests {
                 .content(mapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", notNullValue()))
-                .andExpect(jsonPath("$.due_date", is(request.getDueDate())))
-                .andExpect(jsonPath("$.total_in_cents", is(request.getTotalInCents())))
+                .andExpect(jsonPath("$.due_date", is(request.getDueDate().toString())))
+                .andExpect(jsonPath("$.total_in_cents").value(request.getTotalInCents()))
                 .andExpect(jsonPath("$.customer", is(request.getCustomer())))
                 .andExpect(jsonPath("$.status", is("PENDING")));
+    }
+
+    @Test
+    public void createShouldReturnUnprocessableEntityWhenCustomerIsNotPresent() throws Exception {
+
+        final LocalDate tomorrow = LocalDate.now().plusDays(1);
+        BankSlipRequest request = BankSlipRequest.builder()
+                .dueDate(tomorrow)
+                .totalInCents(new BigDecimal(faker.numerify("#########")))
+                .build();
+
+        mvc.perform(
+                post("/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[0].field", is("customer")));
+    }
+
+    @Test
+    public void createShouldReturnUnprocessableEntityWhenDueDateIsNotPresent() throws Exception {
+
+        BankSlipRequest request = BankSlipRequest.builder()
+                .customer(faker.company().name())
+                .totalInCents(new BigDecimal(faker.numerify("#########")))
+                .build();
+
+        mvc.perform(
+                post("/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[0].field", is("dueDate")));
+    }
+
+    @Test
+    public void createShouldReturnUnprocessableEntityWhenTotalInCentsIsNotPresent() throws Exception {
+
+        final LocalDate tomorrow = LocalDate.now().plusDays(1);
+        BankSlipRequest request = BankSlipRequest.builder()
+                .dueDate(tomorrow)
+                .customer(faker.company().name())
+                .build();
+
+        mvc.perform(
+                post("/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[0].field", is("totalInCents")));
+    }
+
+    @Test
+    public void createShouldReturnBadRequestWhenNoBodyIsPresent() throws Exception {
+        mvc.perform(
+                post("/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -83,15 +149,15 @@ public class ApiTests {
         final List<BankSlipResponse> mockList = Arrays.asList(
                 BankSlipResponse.builder()
                         .id("asdasdasd")
-                        .dueDate("2018-09-12")
-                        .totalInCents("1000000000")
+                        .dueDate(LocalDate.of(2018, 9, 12))
+                        .totalInCents(new BigDecimal("1000000000"))
                         .customer("Fake Company")
                         .status("PENDING")
                         .build(),
                 BankSlipResponse.builder()
                         .id("qweqweqwe")
-                        .dueDate("2018-09-13")
-                        .totalInCents("1000000001")
+                        .dueDate(LocalDate.of(2018, 9, 13))
+                        .totalInCents(new BigDecimal("1000000001"))
                         .customer("Real Company")
                         .status("PENDING")
                         .build());
@@ -104,8 +170,8 @@ public class ApiTests {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        final String expected = "[{id:\"asdasdasd\",due_date:\"2018-09-12\",total_in_cents:\"1000000000\",customer:\"Fake Company\",status:\"PENDING\"}," +
-                "{id:\"qweqweqwe\",due_date:\"2018-09-13\",total_in_cents:\"1000000001\",customer:\"Real Company\",status:\"PENDING\"}]";
+        final String expected = "[{id:\"asdasdasd\",due_date:\"2018-09-12\",total_in_cents:1000000000,customer:\"Fake Company\",status:\"PENDING\"}," +
+                "{id:\"qweqweqwe\",due_date:\"2018-09-13\",total_in_cents:1000000001,customer:\"Real Company\",status:\"PENDING\"}]";
 
         JSONAssert.assertEquals(expected, result.getResponse().getContentAsString(), false);
     }
@@ -116,8 +182,8 @@ public class ApiTests {
 
         final BankSlipResponse mockResponse = BankSlipResponse.builder()
                 .id(bankSlipId)
-                .dueDate("2018-09-13")
-                .totalInCents("1000000001")
+                .dueDate(LocalDate.of(2018, 9, 13))
+                .totalInCents(new BigDecimal("1000000001"))
                 .customer("Real Company")
                 .status("PENDING")
                 .build();
@@ -128,7 +194,7 @@ public class ApiTests {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        final String expected = "{id:\"qweqweqwe\",due_date:\"2018-09-13\",total_in_cents:\"1000000001\",customer:\"Real Company\",status:\"PENDING\"}";
+        final String expected = "{id:\"qweqweqwe\",due_date:\"2018-09-13\",total_in_cents:1000000001,customer:\"Real Company\",status:\"PENDING\"}";
         JSONAssert.assertEquals(expected, result.getResponse().getContentAsString(), false);
     }
 
@@ -148,8 +214,8 @@ public class ApiTests {
 
         final BankSlipResponse mockResponse = BankSlipResponse.builder()
                 .id(bankSlipId)
-                .dueDate("2018-09-12")
-                .totalInCents("1000000000")
+                .dueDate(LocalDate.of(2018, 9, 12))
+                .totalInCents(new BigDecimal("1000000000"))
                 .customer("Fake Company")
                 .status("PENDING")
                 .build();
@@ -181,8 +247,8 @@ public class ApiTests {
 
         final BankSlipResponse mockResponse = BankSlipResponse.builder()
                 .id(bankSlipId)
-                .dueDate("2018-09-12")
-                .totalInCents("1000000000")
+                .dueDate(LocalDate.of(2018, 9, 12))
+                .totalInCents(new BigDecimal("1000000000"))
                 .customer("Fake Company")
                 .status("PENDING")
                 .build();
