@@ -1,7 +1,10 @@
 package com.marinho.bankslips.repository;
 
 import com.marinho.bankslips.model.BankSlip;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface BankSlipRepository extends CrudRepository<BankSlip, Long> {
+import java.util.Optional;
+
+public interface BankSlipRepository extends JpaRepository<BankSlip, Long> {
+    Optional<BankSlip> findByUuid(final String uuid);
 }

@@ -33,5 +33,6 @@ public class BankSlipRequest implements Serializable {
     private BigDecimal totalInCents;
 
     @NotBlank
+    @NotNull
     private String customer;
 }

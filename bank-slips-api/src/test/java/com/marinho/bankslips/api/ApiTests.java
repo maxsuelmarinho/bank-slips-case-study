@@ -5,9 +5,12 @@ import com.github.javafaker.Faker;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
 import com.marinho.bankslips.exception.BankSlipNotFoundException;
+import com.marinho.bankslips.model.BankSlip;
+import com.marinho.bankslips.model.BankSlipStatus;
 import com.marinho.bankslips.service.IBankSlipService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.modelmapper.ModelMapper;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,7 +27,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -44,6 +46,9 @@ public class ApiTests {
     @MockBean
     private IBankSlipService service;
 
+    @MockBean
+    private ModelMapper modelMapper;
+
     private Faker faker = new Faker();
 
     @Test
@@ -56,15 +61,25 @@ public class ApiTests {
                 .totalInCents(new BigDecimal(faker.numerify("#########")))
                 .build();
 
-        final BankSlipResponse mockResponse = BankSlipResponse.builder()
-                .id(UUID.randomUUID().toString())
-                .dueDate(request.getDueDate())
+        final BankSlip bankSlip = BankSlip.builder()
+                .id(1L)
+                .uuid(UUID.randomUUID().toString())
                 .totalInCents(request.getTotalInCents())
+                .dueDate(request.getDueDate())
                 .customer(request.getCustomer())
-                .status("PENDING")
+                .status(BankSlipStatus.PENDING)
                 .build();
 
-        when(service.create(request)).thenReturn(mockResponse);
+        final BankSlipResponse response = BankSlipResponse.builder()
+                .id(bankSlip.getUuid())
+                .status(bankSlip.getStatus().name())
+                .totalInCents(bankSlip.getTotalInCents())
+                .customer(bankSlip.getCustomer())
+                .dueDate(bankSlip.getDueDate())
+                .build();
+
+        when(service.create(request.getCustomer(), request.getDueDate(), request.getTotalInCents())).thenReturn(bankSlip);
+        when(modelMapper.map(bankSlip, BankSlipResponse.class)).thenReturn(response);
 
         mvc.perform(
                 post("/")
@@ -72,7 +87,7 @@ public class ApiTests {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id", notNullValue()))
+                .andExpect(jsonPath("$.id", is(response.getId())))
                 .andExpect(jsonPath("$.due_date", is(request.getDueDate().toString())))
                 .andExpect(jsonPath("$.total_in_cents").value(request.getTotalInCents()))
                 .andExpect(jsonPath("$.customer", is(request.getCustomer())))
@@ -166,23 +181,40 @@ public class ApiTests {
 
     @Test
     public void listBankSlips() throws Exception {
-        final List<BankSlipResponse> mockList = Arrays.asList(
-                BankSlipResponse.builder()
-                        .id("asdasdasd")
+        final List<BankSlip> mockList = Arrays.asList(
+                BankSlip.builder()
+                        .uuid("asdasdasd")
                         .dueDate(LocalDate.of(2018, 9, 12))
                         .totalInCents(new BigDecimal("1000000000"))
                         .customer("Fake Company")
-                        .status("PENDING")
+                        .status(BankSlipStatus.PENDING)
                         .build(),
-                BankSlipResponse.builder()
-                        .id("qweqweqwe")
+                BankSlip.builder()
+                        .uuid("qweqweqwe")
                         .dueDate(LocalDate.of(2018, 9, 13))
                         .totalInCents(new BigDecimal("1000000001"))
                         .customer("Real Company")
-                        .status("PENDING")
+                        .status(BankSlipStatus.PENDING)
                         .build());
 
         when(service.findAll()).thenReturn(mockList);
+
+        when(modelMapper.map(mockList.get(0), BankSlipResponse.class))
+                .thenReturn(BankSlipResponse.builder()
+                        .id(mockList.get(0).getUuid())
+                        .dueDate(mockList.get(0).getDueDate())
+                        .customer(mockList.get(0).getCustomer())
+                        .status(mockList.get(0).getStatus().name())
+                        .totalInCents(mockList.get(0).getTotalInCents())
+                        .build());
+        when(modelMapper.map(mockList.get(1), BankSlipResponse.class))
+                .thenReturn(BankSlipResponse.builder()
+                        .id(mockList.get(1).getUuid())
+                        .dueDate(mockList.get(1).getDueDate())
+                        .customer(mockList.get(1).getCustomer())
+                        .status(mockList.get(1).getStatus().name())
+                        .totalInCents(mockList.get(1).getTotalInCents())
+                        .build());
 
         MvcResult result = mvc.perform(
                 get("/")
@@ -198,19 +230,29 @@ public class ApiTests {
 
     @Test
     public void retrieveBankSlip() throws Exception {
-        final String bankSlipId = "qweqweqwe";
+        final String bankSlipUuid = "qweqweqwe";
 
-        final BankSlipResponse mockResponse = BankSlipResponse.builder()
-                .id(bankSlipId)
-                .dueDate(LocalDate.of(2018, 9, 13))
+        final BankSlip bankSlip = BankSlip.builder()
+                .id(1L)
+                .uuid(bankSlipUuid)
                 .totalInCents(new BigDecimal("1000000001"))
+                .dueDate(LocalDate.of(2018, 9, 13))
                 .customer("Real Company")
-                .status("PENDING")
+                .status(BankSlipStatus.PENDING)
                 .build();
 
-        when(service.findById(bankSlipId)).thenReturn(mockResponse);
+        final BankSlipResponse mockResponse = BankSlipResponse.builder()
+                .id(bankSlipUuid)
+                .dueDate(bankSlip.getDueDate())
+                .totalInCents(bankSlip.getTotalInCents())
+                .customer(bankSlip.getCustomer())
+                .status(bankSlip.getStatus().name())
+                .build();
 
-        MvcResult result = mvc.perform(get("/" + bankSlipId).accept(MediaType.APPLICATION_JSON))
+        when(service.findByUuid(bankSlipUuid)).thenReturn(bankSlip);
+        when(modelMapper.map(bankSlip, BankSlipResponse.class)).thenReturn(mockResponse);
+
+        MvcResult result = mvc.perform(get("/" + bankSlipUuid).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -222,7 +264,7 @@ public class ApiTests {
     public void retrieveBankSlipShouldReturnNotFound() throws Exception {
         final String bankSlipId = "zxczxczxc";
 
-        doThrow(BankSlipNotFoundException.class).when(service).findById(bankSlipId);
+        doThrow(BankSlipNotFoundException.class).when(service).findByUuid(bankSlipId);
 
         mvc.perform(get("/" + bankSlipId).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());

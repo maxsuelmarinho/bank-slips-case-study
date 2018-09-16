@@ -64,4 +64,10 @@ public class BankSlipRepositoryTests {
         assertEquals(BankSlipStatus.PAID, bankSlipUpdated.getStatus());
 
     }
+
+    @Test
+    public void findByUuid() {
+        BankSlip bankSlip = repository.findByUuid("asdasdasd").get();
+        assertEquals("Customer A", bankSlip.getCustomer());
+    }
 }

@@ -1,20 +1,21 @@
 package com.marinho.bankslips.service;
 
 
-import com.marinho.bankslips.dto.BankSlipRequest;
-import com.marinho.bankslips.dto.BankSlipResponse;
+import com.marinho.bankslips.model.BankSlip;
 
-import java.util.Collection;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 
 public interface IBankSlipService {
 
-    Collection<BankSlipResponse> findAll();
+    List<BankSlip> findAll();
 
-    BankSlipResponse create(BankSlipRequest request);
-
-    BankSlipResponse findById(final String id);
+    BankSlip findByUuid(final String id);
 
     void pay(final String id);
 
     void cancel(String id);
+
+    BankSlip create(String customer, LocalDate dueDate, BigDecimal totalInCents);
 }

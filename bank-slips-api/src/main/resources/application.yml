@@ -1,6 +1,6 @@
 server:
   servlet:
-    context-path: /rest/bankslips
+    context-path: /rest
   port: 8080
 
 spring:

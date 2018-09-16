@@ -1,21 +1,28 @@
 package com.marinho.bankslips.service;
 
 import com.github.javafaker.Faker;
-import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
 import com.marinho.bankslips.exception.BankSlipNotFoundException;
+import com.marinho.bankslips.model.BankSlip;
+import com.marinho.bankslips.model.BankSlipStatus;
+import com.marinho.bankslips.repository.BankSlipRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.TestTemplate;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -24,58 +31,74 @@ public class BankSlipServiceTests {
     @Autowired
     private IBankSlipService service;
 
+    @MockBean
+    private BankSlipRepository repository;
+
     private Faker faker = new Faker();
 
-    @Before
-    public void setUp() {
-
-    }
-
     @Test
-    public void findAllBankSlips() {
-        Collection<BankSlipResponse> list = service.findAll();
+    public void findAll() {
+        final List<BankSlip> mockList = Arrays.asList(
+                createBankSlip(),
+                createBankSlip());
+
+        when(repository.findAll()).thenReturn(mockList);
+
+        final List<BankSlip> list = service.findAll();
 
         assertNotNull(list);
+        assertEquals(mockList.size(), list.size());
     }
 
     @Test
-    public void createBankSlip() {
-        BankSlipRequest request = BankSlipRequest.builder()
-                .customer(faker.company().name())
-                .dueDate(LocalDate.of(2018, 9, 12))
-                .totalInCents(new BigDecimal(faker.numerify("#########")))
-                .build();
+    public void create() {
 
-        BankSlipResponse response = service.create(request);
+        final BankSlip bankSlipMock = createBankSlip();
 
-        assertNotNull(response);
-        assertNotNull(response.getId());
-        assertEquals("PENDING", response.getStatus());
-        assertEquals(3, service.findAll().size());
+        when(repository.save(Mockito.any(BankSlip.class))).then(it -> {
+            bankSlipMock.setId(9L);
+            return bankSlipMock;
+        });
+
+        final BankSlip bankSlip = service.create(bankSlipMock.getCustomer(), bankSlipMock.getDueDate(), bankSlipMock.getTotalInCents());
+
+        assertNotNull(bankSlip);
+        assertEquals(Long.valueOf(9L), bankSlip.getId());
+        assertEquals(BankSlipStatus.PENDING, bankSlip.getStatus());
     }
 
     @Test
-    public void findBankSlipById() {
+    public void findByUuid() {
 
-        final String bankSlipId = "asdasdasd";
-        final BankSlipResponse response = service.findById(bankSlipId);
-        assertNotNull(response);
-        assertEquals(bankSlipId, response.getId());
+        final BankSlip bankSlipMock = createBankSlip();
+        final String bankSlipUuid = bankSlipMock.getUuid();
+
+        when(repository.findByUuid(bankSlipUuid)).thenReturn(Optional.of(bankSlipMock));
+
+        final BankSlip bankSlip = service.findByUuid(bankSlipUuid);
+
+        assertNotNull(bankSlip);
+        assertEquals(bankSlipUuid, bankSlip.getUuid());
     }
 
     @Test(expected = BankSlipNotFoundException.class)
-    public void findBankSlipByIdShouldThrowsNotFoundException() {
+    public void findByUuidShouldThrowsNotFoundException() {
         final String bankSlipId = "zxczxczxc";
-        service.findById(bankSlipId);
+        service.findByUuid(bankSlipId);
         fail("Should not arrived up here");
     }
 
     @Test
-    public void payBankSlip() {
-        final String bankSlipId = "asdasdasd";
-        service.pay(bankSlipId);
-        final BankSlipResponse response = service.findById(bankSlipId);
-        assertEquals("PAID", response.getStatus());
+    public void pay() {
+
+        final BankSlip bankSlipMock = createBankSlip();
+        final String bankSlipUuid = bankSlipMock.getUuid();
+
+        when(repository.findByUuid(bankSlipUuid)).thenReturn(Optional.of(bankSlipMock));
+
+        service.pay(bankSlipMock.getUuid());
+        final BankSlip bankSlip = service.findByUuid(bankSlipUuid);
+        assertEquals(BankSlipStatus.PAID, bankSlip.getStatus());
     }
 
     @Test(expected = BankSlipNotFoundException.class)
@@ -86,11 +109,16 @@ public class BankSlipServiceTests {
     }
 
     @Test
-    public void cancelBankSlip() {
-        final String bankSlipId = "qweqweqwe";
-        service.cancel(bankSlipId);
-        final BankSlipResponse response = service.findById(bankSlipId);
-        assertEquals("CANCELED", response.getStatus());
+    public void cancel() {
+        final BankSlip bankSlipMock = createBankSlip();
+        final String bankSlipUuid = bankSlipMock.getUuid();
+
+        when(repository.findByUuid(bankSlipUuid)).thenReturn(Optional.of(bankSlipMock));
+
+        service.cancel(bankSlipUuid);
+        final BankSlip bankSlip = service.findByUuid(bankSlipUuid);
+
+        assertEquals(BankSlipStatus.CANCELED, bankSlip.getStatus());
     }
 
     @Test(expected = BankSlipNotFoundException.class)
@@ -98,6 +126,16 @@ public class BankSlipServiceTests {
         final String bankSlipId = "zxczxczxc";
         service.cancel(bankSlipId);
         fail("Should not arrived up here");
+    }
+
+    private BankSlip createBankSlip() {
+        return BankSlip.builder()
+                .uuid(UUID.randomUUID().toString())
+                .totalInCents(new BigDecimal(faker.numerify("#########")))
+                .dueDate(LocalDate.now().plusDays(faker.number().numberBetween(1, 30)))
+                .customer(faker.company().name())
+                .status(BankSlipStatus.PENDING)
+                .build();
     }
 
 }
