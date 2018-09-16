@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 public class BankSlipServiceTests {
 
     @Autowired
-    private BankSlipService service;
+    private IBankSlipService service;
 
     private Faker faker = new Faker();
 

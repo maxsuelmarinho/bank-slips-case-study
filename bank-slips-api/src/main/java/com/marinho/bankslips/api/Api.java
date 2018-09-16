@@ -2,7 +2,8 @@ package com.marinho.bankslips.api;
 
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
-import com.marinho.bankslips.service.BankSlipService;
+import com.marinho.bankslips.service.IBankSlipService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ import java.util.Collection;
 public class Api {
 
     @Autowired
-    private BankSlipService service;
+    private IBankSlipService service;
 
     @GetMapping
     public Collection<BankSlipResponse> list() {

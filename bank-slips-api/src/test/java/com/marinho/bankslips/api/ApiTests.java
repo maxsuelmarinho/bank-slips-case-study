@@ -6,6 +6,7 @@ import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
 import com.marinho.bankslips.exception.BankSlipNotFoundException;
 import com.marinho.bankslips.service.BankSlipService;
+import com.marinho.bankslips.service.IBankSlipService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -42,7 +43,7 @@ public class ApiTests {
     private ObjectMapper mapper;
 
     @MockBean
-    private BankSlipService service;
+    private IBankSlipService service;
 
     private Faker faker = new Faker();
 
@@ -123,6 +124,26 @@ public class ApiTests {
         BankSlipRequest request = BankSlipRequest.builder()
                 .dueDate(tomorrow)
                 .customer(faker.company().name())
+                .build();
+
+        mvc.perform(
+                post("/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[0].field", is("totalInCents")));
+    }
+
+    @Test
+    public void createShouldReturnUnprocessableEntityWhenTotalInCentsIsNotPositiveValue() throws Exception {
+
+        final LocalDate tomorrow = LocalDate.now().plusDays(1);
+        BankSlipRequest request = BankSlipRequest.builder()
+                .dueDate(tomorrow)
+                .customer(faker.company().name())
+                .totalInCents(new BigDecimal(-1))
                 .build();
 
         mvc.perform(

@@ -34,6 +34,11 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
     compile('org.springframework.boot:spring-boot-starter-hateoas')
 
+    compile('org.modelmapper:modelmapper:2.2.0')
+
+    compile('org.liquibase:liquibase-core')
+    compile('org.hibernate:hibernate-java8:5.1.0.Final')
+
     compileOnly("org.projectlombok:lombok:1.18.2")
 
     runtime('org.springframework.boot:spring-boot-devtools')

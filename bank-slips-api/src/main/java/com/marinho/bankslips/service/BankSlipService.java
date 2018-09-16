@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class BankSlipService {
+public class BankSlipService implements IBankSlipService {
 
     private List<BankSlipResponse> bankSlips = new ArrayList<>();
 
