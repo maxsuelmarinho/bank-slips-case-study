@@ -1,5 +1,6 @@
 package com.marinho.bankslips.api;
 
+import com.marinho.bankslips.dto.ApiError;
 import com.marinho.bankslips.exception.BankSlipNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

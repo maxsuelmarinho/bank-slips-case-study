@@ -5,7 +5,6 @@ import com.github.javafaker.Faker;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
 import com.marinho.bankslips.exception.BankSlipNotFoundException;
-import com.marinho.bankslips.service.BankSlipService;
 import com.marinho.bankslips.service.IBankSlipService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
