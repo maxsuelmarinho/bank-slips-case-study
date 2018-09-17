@@ -1,10 +1,9 @@
 package com.marinho.bankslips.api;
 
+import com.marinho.bankslips.dto.BankSlipPaymentRequest;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
-import com.marinho.bankslips.model.BankSlip;
-import com.marinho.bankslips.service.IBankSlipService;
-import org.modelmapper.ModelMapper;
+import com.marinho.bankslips.facade.BankSlipFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.ResponseEntity;
@@ -14,27 +13,22 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@RestController("bankslips")
+@RestController
 public class Api {
 
     @Autowired
-    private IBankSlipService service;
+    private BankSlipFacade facade;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @GetMapping
+    @GetMapping("/bankslips")
     public List<BankSlipResponse> list() {
-        return convertToDto(service.findAll());
+        return facade.findAll();
     }
 
-    @PostMapping
+    @PostMapping("/bankslips")
     public ResponseEntity<?> create(@RequestBody @Valid final BankSlipRequest request) {
 
-        final BankSlip bankSlip = service.create(request.getCustomer(), request.getDueDate(), request.getTotalInCents());
-        final BankSlipResponse response = convertToDto(bankSlip);
+        final BankSlipResponse response = facade.create(request);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -43,35 +37,25 @@ public class Api {
         return ResponseEntity.created(location).body(response);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/bankslips/{id}")
     public Resource<BankSlipResponse> get(@PathVariable final String id) {
-        final BankSlip bankSlip = service.findByUuid(id);
-        final BankSlipResponse response = convertToDto(bankSlip);
+        final BankSlipResponse response = facade.get(id);
 
         return new Resource<>(response);
     }
 
-    @PutMapping("/{id}/payments")
-    public ResponseEntity pay(@PathVariable final String id) {
-        service.pay(id);
+    @PutMapping("/bankslips/{id}/payments")
+    public ResponseEntity pay(@PathVariable final String id,
+                              @Valid @RequestBody final BankSlipPaymentRequest request) {
+        facade.pay(id, request);
 
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/bankslips/{id}")
     public ResponseEntity cancel(@PathVariable final String id) {
-        service.cancel(id);
+        facade.cancel(id);
 
         return ResponseEntity.noContent().build();
-    }
-
-    private BankSlipResponse convertToDto(final BankSlip entity) {
-        return modelMapper.map(entity, BankSlipResponse.class);
-    }
-
-    private List<BankSlipResponse> convertToDto(List<BankSlip> entities) {
-        return entities.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
     }
 }

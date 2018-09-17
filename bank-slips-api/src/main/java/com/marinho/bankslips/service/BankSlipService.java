@@ -27,10 +27,11 @@ public class BankSlipService implements IBankSlipService {
                 .orElseThrow(BankSlipNotFoundException::new);
     }
 
-    public void pay(final String id) {
+    public void pay(final String id, LocalDate paymentDate) {
         final BankSlip bankSlip = findByUuid(id);
 
         bankSlip.setStatus(BankSlipStatus.PAID);
+        bankSlip.setPaymentDate(paymentDate);
         repository.save(bankSlip);
     }
 

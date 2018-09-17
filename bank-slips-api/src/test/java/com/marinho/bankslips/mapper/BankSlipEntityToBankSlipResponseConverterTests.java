@@ -34,7 +34,7 @@ public class BankSlipEntityToBankSlipResponseConverterTests {
                 .status(BankSlipStatus.PENDING)
                 .customer(faker.company().name())
                 .dueDate(LocalDate.now())
-                .paymentDate(LocalDateTime.now())
+                .paymentDate(LocalDate.now())
                 .totalInCents(new BigDecimal(faker.numerify("##########")))
                 .build();
 

@@ -2,15 +2,15 @@ package com.marinho.bankslips.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
+import com.marinho.bankslips.dto.BankSlipPaymentRequest;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
 import com.marinho.bankslips.exception.BankSlipNotFoundException;
+import com.marinho.bankslips.facade.BankSlipFacade;
 import com.marinho.bankslips.model.BankSlip;
 import com.marinho.bankslips.model.BankSlipStatus;
-import com.marinho.bankslips.service.IBankSlipService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.modelmapper.ModelMapper;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -44,10 +44,7 @@ public class ApiTests {
     private ObjectMapper mapper;
 
     @MockBean
-    private IBankSlipService service;
-
-    @MockBean
-    private ModelMapper modelMapper;
+    private BankSlipFacade facade;
 
     private Faker faker = new Faker();
 
@@ -78,11 +75,10 @@ public class ApiTests {
                 .dueDate(bankSlip.getDueDate())
                 .build();
 
-        when(service.create(request.getCustomer(), request.getDueDate(), request.getTotalInCents())).thenReturn(bankSlip);
-        when(modelMapper.map(bankSlip, BankSlipResponse.class)).thenReturn(response);
+        when(facade.create(request)).thenReturn(response);
 
         mvc.perform(
-                post("/")
+                post("/bankslips")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(request)))
@@ -104,7 +100,7 @@ public class ApiTests {
                 .build();
 
         mvc.perform(
-                post("/")
+                post("/bankslips")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(request)))
@@ -122,7 +118,7 @@ public class ApiTests {
                 .build();
 
         mvc.perform(
-                post("/")
+                post("/bankslips")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(request)))
@@ -141,7 +137,7 @@ public class ApiTests {
                 .build();
 
         mvc.perform(
-                post("/")
+                post("/bankslips")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(request)))
@@ -161,7 +157,7 @@ public class ApiTests {
                 .build();
 
         mvc.perform(
-                post("/")
+                post("/bankslips")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(request)))
@@ -173,7 +169,7 @@ public class ApiTests {
     @Test
     public void createShouldReturnBadRequestWhenNoBodyIsPresent() throws Exception {
         mvc.perform(
-                post("/")
+                post("/bankslips")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -181,43 +177,26 @@ public class ApiTests {
 
     @Test
     public void listBankSlips() throws Exception {
-        final List<BankSlip> mockList = Arrays.asList(
-                BankSlip.builder()
-                        .uuid("asdasdasd")
+        final List<BankSlipResponse> mockList = Arrays.asList(
+                BankSlipResponse.builder()
+                        .id("asdasdasd")
                         .dueDate(LocalDate.of(2018, 9, 12))
                         .totalInCents(new BigDecimal("1000000000"))
                         .customer("Fake Company")
-                        .status(BankSlipStatus.PENDING)
+                        .status(BankSlipStatus.PENDING.name())
                         .build(),
-                BankSlip.builder()
-                        .uuid("qweqweqwe")
+                BankSlipResponse.builder()
+                        .id("qweqweqwe")
                         .dueDate(LocalDate.of(2018, 9, 13))
                         .totalInCents(new BigDecimal("1000000001"))
                         .customer("Real Company")
-                        .status(BankSlipStatus.PENDING)
+                        .status(BankSlipStatus.PENDING.name())
                         .build());
 
-        when(service.findAll()).thenReturn(mockList);
-
-        when(modelMapper.map(mockList.get(0), BankSlipResponse.class))
-                .thenReturn(BankSlipResponse.builder()
-                        .id(mockList.get(0).getUuid())
-                        .dueDate(mockList.get(0).getDueDate())
-                        .customer(mockList.get(0).getCustomer())
-                        .status(mockList.get(0).getStatus().name())
-                        .totalInCents(mockList.get(0).getTotalInCents())
-                        .build());
-        when(modelMapper.map(mockList.get(1), BankSlipResponse.class))
-                .thenReturn(BankSlipResponse.builder()
-                        .id(mockList.get(1).getUuid())
-                        .dueDate(mockList.get(1).getDueDate())
-                        .customer(mockList.get(1).getCustomer())
-                        .status(mockList.get(1).getStatus().name())
-                        .totalInCents(mockList.get(1).getTotalInCents())
-                        .build());
+        when(facade.findAll()).thenReturn(mockList);
 
         MvcResult result = mvc.perform(
-                get("/")
+                get("/bankslips")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -232,27 +211,18 @@ public class ApiTests {
     public void retrieveBankSlip() throws Exception {
         final String bankSlipUuid = "qweqweqwe";
 
-        final BankSlip bankSlip = BankSlip.builder()
-                .id(1L)
-                .uuid(bankSlipUuid)
-                .totalInCents(new BigDecimal("1000000001"))
-                .dueDate(LocalDate.of(2018, 9, 13))
-                .customer("Real Company")
-                .status(BankSlipStatus.PENDING)
-                .build();
-
         final BankSlipResponse mockResponse = BankSlipResponse.builder()
                 .id(bankSlipUuid)
-                .dueDate(bankSlip.getDueDate())
-                .totalInCents(bankSlip.getTotalInCents())
-                .customer(bankSlip.getCustomer())
-                .status(bankSlip.getStatus().name())
+                .dueDate(LocalDate.of(2018, 9, 13))
+                .totalInCents(new BigDecimal("1000000001"))
+                .customer("Real Company")
+                .status(BankSlipStatus.PENDING.name())
                 .build();
 
-        when(service.findByUuid(bankSlipUuid)).thenReturn(bankSlip);
-        when(modelMapper.map(bankSlip, BankSlipResponse.class)).thenReturn(mockResponse);
+        when(facade.get(bankSlipUuid)).thenReturn(mockResponse);
 
-        MvcResult result = mvc.perform(get("/" + bankSlipUuid).accept(MediaType.APPLICATION_JSON))
+        MvcResult result = mvc.perform(get("/bankslips/" + bankSlipUuid)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -264,42 +234,39 @@ public class ApiTests {
     public void retrieveBankSlipShouldReturnNotFound() throws Exception {
         final String bankSlipId = "zxczxczxc";
 
-        doThrow(BankSlipNotFoundException.class).when(service).findByUuid(bankSlipId);
+        doThrow(BankSlipNotFoundException.class).when(facade).get(bankSlipId);
 
-        mvc.perform(get("/" + bankSlipId).accept(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/bankslips/" + bankSlipId).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void payBankSlip() throws Exception {
         final String bankSlipId = "asdasdasd";
-
-        final BankSlipResponse mockResponse = BankSlipResponse.builder()
-                .id(bankSlipId)
-                .dueDate(LocalDate.of(2018, 9, 12))
-                .totalInCents(new BigDecimal("1000000000"))
-                .customer("Fake Company")
-                .status("PENDING")
+        BankSlipPaymentRequest request = BankSlipPaymentRequest.builder()
+                .paymentDate(LocalDate.now())
                 .build();
 
-        doAnswer(it -> {
-            mockResponse.setStatus("PAID");
-            return null;
-        }).when(service).pay(bankSlipId);
-
-        mvc.perform(put("/" + bankSlipId + "/payments"))
+        mvc.perform(put("/bankslips/" + bankSlipId + "/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
 
-        assertEquals("PAID", mockResponse.getStatus());
+        verify(facade, times(1)).pay(anyString(), any(BankSlipPaymentRequest.class));
     }
 
     @Test
     public void payBankSlipShouldReturnNotFound() throws Exception {
         final String bankSlipId = "zxczxczxc";
+        BankSlipPaymentRequest request = BankSlipPaymentRequest.builder()
+                .paymentDate(LocalDate.now())
+                .build();
 
-        doThrow(BankSlipNotFoundException.class).when(service).pay(bankSlipId);
+        doThrow(BankSlipNotFoundException.class).when(facade).pay(bankSlipId, request);
 
-        mvc.perform(put("/" + bankSlipId + "/payments"))
+        mvc.perform(put("/bankslips/" + bankSlipId + "/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
     }
 
@@ -318,9 +285,9 @@ public class ApiTests {
         doAnswer(it -> {
             mockResponse.setStatus("CANCELED");
             return null;
-        }).when(service).cancel(bankSlipId);
+        }).when(facade).cancel(bankSlipId);
 
-        mvc.perform(delete("/" + bankSlipId))
+        mvc.perform(delete("/bankslips/" + bankSlipId))
                 .andExpect(status().isNoContent());
 
         assertEquals("CANCELED", mockResponse.getStatus());
@@ -330,9 +297,9 @@ public class ApiTests {
     public void cancelBankSlipShouldReturnNotFound() throws Exception {
         final String bankSlipId = "zxczxczxc";
 
-        doThrow(BankSlipNotFoundException.class).when(service).cancel(bankSlipId);
+        doThrow(BankSlipNotFoundException.class).when(facade).cancel(bankSlipId);
 
-        mvc.perform(delete("/" + bankSlipId))
+        mvc.perform(delete("/bankslips/" + bankSlipId))
                 .andExpect(status().isNotFound());
     }
 }

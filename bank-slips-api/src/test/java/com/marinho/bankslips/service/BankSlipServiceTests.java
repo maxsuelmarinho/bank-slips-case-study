@@ -95,7 +95,7 @@ public class BankSlipServiceTests {
 
         when(repository.findByUuid(bankSlipUuid)).thenReturn(Optional.of(bankSlipMock));
 
-        service.pay(bankSlipMock.getUuid());
+        service.pay(bankSlipMock.getUuid(), LocalDate.now());
         final BankSlip bankSlip = service.findByUuid(bankSlipUuid);
         assertEquals(BankSlipStatus.PAID, bankSlip.getStatus());
     }
@@ -103,7 +103,7 @@ public class BankSlipServiceTests {
     @Test(expected = BankSlipNotFoundException.class)
     public void payShouldThrowsNotFoundException() {
         final String bankSlipId = "zxczxczxc";
-        service.pay(bankSlipId);
+        service.pay(bankSlipId, LocalDate.now());
         fail("Should not arrived up here");
     }
 

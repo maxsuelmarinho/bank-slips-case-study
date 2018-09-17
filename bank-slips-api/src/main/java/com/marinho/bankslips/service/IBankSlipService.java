@@ -13,7 +13,7 @@ public interface IBankSlipService {
 
     BankSlip findByUuid(final String id);
 
-    void pay(final String id);
+    void pay(final String id, LocalDate paymentDate);
 
     void cancel(String id);
 

@@ -1,5 +1,6 @@
 package com.marinho.bankslips.model;
 
+import com.marinho.bankslips.dto.BankSlipResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,7 +40,7 @@ public class BankSlip implements Serializable {
     private LocalDate dueDate;
 
     @Column(name = "payment_date")
-    private LocalDateTime paymentDate;
+    private LocalDate paymentDate;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
