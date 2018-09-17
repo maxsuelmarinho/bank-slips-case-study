@@ -101,10 +101,6 @@ task dockerImage(type: Docker) {
             from file('src/main/docker/docker-entrypoint.sh')
             into stageDir
         }
-        copy {
-            from 'newrelic'
-            into stageDir
-        }
     }
 }
 
