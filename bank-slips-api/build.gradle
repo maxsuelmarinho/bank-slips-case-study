@@ -27,6 +27,10 @@ group = 'com.marinho.bankslips'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+bootJar {
+    baseName = 'bank-slips-api'
+}
+
 repositories {
     mavenCentral()
     jcenter()
@@ -62,10 +66,6 @@ dependencies {
     testCompile("com.github.javafaker:javafaker:0.16")
 }
 
-jar {
-    baseName = 'bank-slip-api'
-}
-
 release {
     failOnCommitNeeded = true
     failOnUnversionedFiles = true
@@ -80,7 +80,7 @@ release {
     }
 }
 
-task dockerImage(type: Docker) {
+task dockerImage(type: Docker, dependsOn: build) {
     def buildNumber = System.getenv('BUILD_NUMBER')
 
     push = Boolean.getBoolean('docker.push')
@@ -93,7 +93,7 @@ task dockerImage(type: Docker) {
 
     doFirst {
         copy {
-            from jar
+            from bootJar
             into stageDir
         }
         copy {
@@ -102,8 +102,6 @@ task dockerImage(type: Docker) {
         }
     }
 }
-
-dockerImage.dependsOn 'assemble'
 
 tasks.withType(FindBugs) {
     reports {
