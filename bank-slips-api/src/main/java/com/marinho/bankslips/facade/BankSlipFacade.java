@@ -4,8 +4,6 @@ import com.marinho.bankslips.dto.BankSlipPaymentRequest;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
 import com.marinho.bankslips.model.BankSlip;
-import com.marinho.bankslips.model.BankSlipStatus;
-import com.marinho.bankslips.service.BankSlipService;
 import com.marinho.bankslips.service.IBankSlipService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -4,9 +4,12 @@ buildscript {
     }
     repositories {
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("se.transmode.gradle:gradle-docker:1.2")
+        classpath("net.researchgate:gradle-release:2.6.0")
     }
 }
 
@@ -14,13 +17,20 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'net.researchgate.release'
+apply plugin: "docker"
+apply plugin: "application"
+apply plugin: "findbugs"
+apply plugin: "jacoco"
 
 group = 'com.marinho.bankslips'
-version = '0.0.1-SNAPSHOT'
+
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 ext {
@@ -52,3 +62,65 @@ dependencies {
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile("com.github.javafaker:javafaker:0.16")
 }
+
+jar {
+    baseName = 'bank-slip-api'
+}
+
+release {
+    failOnCommitNeeded = true
+    failOnUnversionedFiles = true
+    failOnUpdateNeeded = true
+    revertOnFail = true
+
+    scmAdapters = [net.researchgate.release.GitAdapter]
+
+    git {
+        requireBranch = "master"
+        pushToRemote = "origin"
+    }
+}
+
+task dockerImage(type: Docker) {
+    def buildNumber = System.getenv('BUILD_NUMBER')
+
+    push = Boolean.getBoolean('docker.push')
+
+    tagVersion = buildNumber ? "${jar.baseName}-${project.version.replaceAll('-SNAPSHOT', '')}.${buildNumber}" : "${jar.baseName}-${project.version.replaceAll('-SNAPSHOT', '')}"
+    registry = 'maxsuelmarinho'
+    applicationName = 'bank-slips-api'
+
+    dockerfile = file('src/main/docker/Dockerfile')
+
+    doFirst {
+        copy {
+            from jar
+            into stageDir
+        }
+        copy {
+            from file('src/main/docker/docker-entrypoint.sh')
+            into stageDir
+        }
+        copy {
+            from 'newrelic'
+            into stageDir
+        }
+    }
+}
+
+dockerImage.dependsOn 'assemble'
+
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+findbugs {
+    ignoreFailures false
+    effort "max"
+    reportLevel "high"
+}
+
+test.finalizedBy jacocoTestReport
