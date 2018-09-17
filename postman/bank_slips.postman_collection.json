@@ -1,0 +1,353 @@
+{
+	"info": {
+		"_postman_id": "4c91b179-47ef-49b6-850c-8770c82469a8",
+		"name": "bank slips",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6d8ca781-3703-476c-95de-6726220ec66d",
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"    pm.environment.set(\"bankSlipId\", jsonData.id);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\t\"due_date\" : \"2018-10-01\" ,\r\t\"total_in_cents\" : \"100000\" ,\r\t\"customer\" : \"Trillian Company\"\r}"
+				},
+				"url": {
+					"raw": "{{url}}/rest/bankslips",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"rest",
+						"bankslips"
+					]
+				},
+				"description": "Esse método recebe um novo boleto e o insere em um banco de dados para ser consumido pela própria API. Todos os campos são obrigatórios.\n\nRetorno:\n{\n\t\"id\" : \"84e8adbf-1a14-403b-ad73-d78ae19b59bf\" ,\n\t\"due_date\" : \"2018-01-01\" ,\n\t\"total_in_cents\" : \"100000\" ,\n\t\"customer\" : \"Trillian Company\" ,\n\t\"status\" : \"PENDING\"\n}\n\nHTTP STATUS:\n* 201 : Bankslip created\n* 400 : Bankslip not provided in the request body\n* 422 : Invalid bankslip provided.The possible reasons are:\n\t* A field of the provided bankslip was null or with invalid values"
+			},
+			"response": []
+		},
+		{
+			"name": "list",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "636ceeb0-a1f8-4797-9f6f-991155381d67",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\t\"due_date\" : \"2018-01-01\" ,\r\t\"total_in_cents\" : \"100000\" ,\r\t\"customer\" : \"Trillian Company\"\r}"
+				},
+				"url": {
+					"raw": "{{url}}/rest/bankslips",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"rest",
+						"bankslips"
+					]
+				},
+				"description": "Retorna uma lista de boletos em formato JSON.\n\nRetorno:\n[\n\t{\n\t\t\"id\" : \"84e8adbf-1a14-403b-ad73-d78ae19b59bf\" ,\n\t\t\"due_date\" : \"2018-01-01\" ,\n\t\t\"total_in_cents\" : \"100000\" ,\n\t\t\"customer\" : \"Ford Prefect Company\" ,\n\t\t\"status\" : \"PENDING\"\n\t},\n\t{\n\t\t\"id\" : \"c2dbd236-3fa5-4ccc-9c12-bd0ae1d6dd89\" ,\n\t\t\"due_date\" : \"2018-02-01\" ,\n\t\t\"total_in_cents\" : \"200000\" ,\n\t\t\"customer\" : \"Zaphod Company\" ,\n\t\t\"status\" : \"PAID\"\n\t}\n]"
+			},
+			"response": []
+		},
+		{
+			"name": "retrive details",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7e6c9208-3dfc-4fbd-8535-9a922870a211",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\t\"due_date\" : \"2018-01-01\" ,\r\t\"total_in_cents\" : \"100000\" ,\r\t\"customer\" : \"Trillian Company\"\r}"
+				},
+				"url": {
+					"raw": "{{url}}/rest/bankslips/{{bankSlipId}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"rest",
+						"bankslips",
+						"{{bankSlipId}}"
+					]
+				},
+				"description": "Esse método da API retorna um boleto filtrado pelo id, caso o boleto estiver atrasado o valor da multa será calculado.\r\rRegra para o cálculo da multa aplicada por dia para os boletos atrasados:\r* Até 10 dias: Multa de 0,5% (Juros Simples)\r* Acima de 10 dias: Multa de 1% (Juros Simples)\r\rRetorno:\r{\r\t\"id\" : \"c2dbd236-3fa5-4ccc-9c12-bd0ae1d6dd89\" ,\r\t\"due_date\" : \"2018-05-10\" ,\r\t\"payment_date\" : \"2018-05-13\" ,\r\t\"total_in_cents\" : \"99000\" ,\r\t\"customer\" : \"Ford Prefect Company\" ,\r\t\"fine\" : \"1485\" ,\r\t\"status\" : \"PAID\"\r}\r\rHTTP STATUS:\r* 200 : Ok\r* 404 : Bankslip not found with the specified id"
+			},
+			"response": []
+		},
+		{
+			"name": "pay",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "33beef93-052f-45f5-a0e1-f4a052969bf2",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\t\"payment_date\" : \"2018-10-30\"\r}"
+				},
+				"url": {
+					"raw": "{{url}}/rest/bankslips/{{bankSlipId}}/payments",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"rest",
+						"bankslips",
+						"{{bankSlipId}}",
+						"payments"
+					]
+				},
+				"description": "Esse método da API altera o status do boleto para PAID.\n\nHTTP STATUS:\n* 204: No content\n* 404: Bankslip not found with the specified id"
+			},
+			"response": []
+		},
+		{
+			"name": "cancel",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "33beef93-052f-45f5-a0e1-f4a052969bf2",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/rest/bankslips/{{bankSlipId}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"rest",
+						"bankslips",
+						"{{bankSlipId}}"
+					]
+				},
+				"description": "Esse método da API altera o status do boleto para CANCELED.\n\nHTTP STATUS:\n* 204 : Bankslip canceled\n* 404 : Bankslip not found with the specified id"
+			},
+			"response": []
+		},
+		{
+			"name": "create without customer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0e61fc7d-dbf3-428f-8d0f-8d012f7c5fa9",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 422\", function () {",
+							"    pm.response.to.have.status(422);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\t\"due_date\" : \"2018-01-01\" ,\r\t\"total_in_cents\" : \"100000\"\r}"
+				},
+				"url": {
+					"raw": "{{url}}/rest/bankslips",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"rest",
+						"bankslips"
+					]
+				},
+				"description": "Esse método recebe um novo boleto e o insere em um banco de dados para ser consumido pela própria API. Todos os campos são obrigatórios.\n\nRetorno:\n{\n\t\"id\" : \"84e8adbf-1a14-403b-ad73-d78ae19b59bf\" ,\n\t\"due_date\" : \"2018-01-01\" ,\n\t\"total_in_cents\" : \"100000\" ,\n\t\"customer\" : \"Trillian Company\" ,\n\t\"status\" : \"PENDING\"\n}\n\nHTTP STATUS:\n* 201 : Bankslip created\n* 400 : Bankslip not provided in the request body\n* 422 : Invalid bankslip provided.The possible reasons are:\n\t* A field of the provided bankslip was null or with invalid values"
+			},
+			"response": []
+		},
+		{
+			"name": "create without body",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "85ff31e0-253e-4cbc-818b-ae0a33134975",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/rest/bankslips",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"rest",
+						"bankslips"
+					]
+				},
+				"description": "Esse método recebe um novo boleto e o insere em um banco de dados para ser consumido pela própria API. Todos os campos são obrigatórios.\n\nRetorno:\n{\n\t\"id\" : \"84e8adbf-1a14-403b-ad73-d78ae19b59bf\" ,\n\t\"due_date\" : \"2018-01-01\" ,\n\t\"total_in_cents\" : \"100000\" ,\n\t\"customer\" : \"Trillian Company\" ,\n\t\"status\" : \"PENDING\"\n}\n\nHTTP STATUS:\n* 201 : Bankslip created\n* 400 : Bankslip not provided in the request body\n* 422 : Invalid bankslip provided.The possible reasons are:\n\t* A field of the provided bankslip was null or with invalid values"
+			},
+			"response": []
+		},
+		{
+			"name": "cancel a nonexistent bank slip",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7a4b9489-e481-4793-a51c-485e221412ec",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/rest/bankslips/9999",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"rest",
+						"bankslips",
+						"9999"
+					]
+				},
+				"description": "Esse método da API altera o status do boleto para CANCELED.\n\nHTTP STATUS:\n* 204 : Bankslip canceled\n* 404 : Bankslip not found with the specified id"
+			},
+			"response": []
+		}
+	]
+}
