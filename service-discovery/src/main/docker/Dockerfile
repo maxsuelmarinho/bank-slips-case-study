@@ -13,9 +13,9 @@ RUN apk update && \
         gettext \
         bash
 
-ADD bank-slips-api-*.jar /app/app.jar
+ADD service-discovery-*.jar /app/app.jar
 RUN sh -c 'touch /app/app.jar'
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
-EXPOSE 8090
+EXPOSE 9090
 ENTRYPOINT ["/docker-entrypoint.sh"]

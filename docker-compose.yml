@@ -1,0 +1,30 @@
+version: '3.1'
+services:
+  service-discovery:
+    image: maxsuelmarinho/service-discovery:0.0.1
+    container_name: service-discovery
+    ports:
+      - "9090:9090"
+    environment:
+      EUREKA_INSTANCE_HOSTNAME: "service-discovery"
+
+  bank-slips-api:
+    image: maxsuelmarinho/bank-slips-api:0.0.1
+    container_name: bank-slips-api
+    ports:
+      - "8090:8090"
+    depends_on:
+      - service-discovery
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://service-discovery:9090/eureka/"
+
+  api-gateway:
+    image: maxsuelmarinho/api-gateway:0.0.1
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - service-discovery
+      - bank-slips-api
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://service-discovery:9090/eureka/"

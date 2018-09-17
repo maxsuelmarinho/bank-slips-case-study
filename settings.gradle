@@ -1,3 +1,5 @@
 rootProject.name = 'bank-slips-case-study'
 include 'bank-slips-api'
+include 'service-discovery'
+include 'api-gateway'
 

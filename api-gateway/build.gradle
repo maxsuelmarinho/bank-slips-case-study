@@ -19,8 +19,6 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'net.researchgate.release'
 apply plugin: "docker"
-apply plugin: "findbugs"
-apply plugin: "jacoco"
 
 group = 'com.marinho.bankslips'
 
@@ -28,7 +26,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 bootJar {
-    baseName = 'bank-slips-api'
+    baseName = 'api-gateway'
 }
 
 repositories {
@@ -37,41 +35,19 @@ repositories {
 }
 
 ext {
-    junitJupiterVersion = "5.3.+"
-    mockitoVersion = "2.22.+"
-    springCloudServicesVersion = '2.0.1.RELEASE'
     springCloudVersion = 'Finchley.SR1'
 }
 
 dependencies {
+    compile('org.springframework.cloud:spring-cloud-starter-netflix-zuul')
+    compile("org.springframework:spring-web")
     compile('org.springframework.boot:spring-boot-starter-actuator')
-    compile('org.springframework.boot:spring-boot-starter-data-jpa')
-    compile('org.springframework.boot:spring-boot-starter-web')
-    compile('org.springframework.boot:spring-boot-starter-hateoas')
     compile('org.springframework.cloud:spring-cloud-starter-netflix-eureka-client')
-
-    compile('org.modelmapper:modelmapper:2.2.0')
-
-    compile('org.liquibase:liquibase-core')
-    compile('org.hibernate:hibernate-java8:5.1.0.Final')
-
-    compileOnly("org.projectlombok:lombok:1.18.2")
-
-    runtime('org.springframework.boot:spring-boot-devtools')
-    runtime('com.h2database:h2')
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-    testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-    testCompile("org.mockito:mockito-core:$mockitoVersion")
-    testCompile("org.mockito:mockito-junit-jupiter:$mockitoVersion")
-    testCompile("org.springframework.boot:spring-boot-starter-test")
-    testCompile("com.github.javafaker:javafaker:0.16")
+    compile("org.springframework.cloud:spring-cloud-starter-sleuth")
 }
 
 dependencyManagement {
     imports {
-        mavenBom "io.pivotal.spring.cloud:spring-cloud-services-dependencies:${springCloudServicesVersion}"
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
@@ -97,7 +73,7 @@ task dockerImage(type: Docker, dependsOn: build) {
 
     tagVersion = buildNumber ? "${project.version.replaceAll('-SNAPSHOT', '')}.${buildNumber}" : "${project.version.replaceAll('-SNAPSHOT', '')}"
     registry = 'maxsuelmarinho'
-    applicationName = 'bank-slips-api'
+    applicationName = 'api-gateway'
 
     dockerfile = file('src/main/docker/Dockerfile')
 
@@ -112,18 +88,3 @@ task dockerImage(type: Docker, dependsOn: build) {
         }
     }
 }
-
-tasks.withType(FindBugs) {
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
-
-findbugs {
-    ignoreFailures true
-    effort "max"
-    reportLevel "high"
-}
-
-test.finalizedBy jacocoTestReport

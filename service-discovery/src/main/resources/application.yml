@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: service-discovery
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+  service:
+    enableSelfPreservation: false
+
+server:
+  port: 9090

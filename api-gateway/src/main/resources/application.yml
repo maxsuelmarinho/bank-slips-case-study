@@ -1,0 +1,26 @@
+zuul:
+  routes:
+    account:
+      path: /**
+      serviceId: bank-slips-api
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:9090/eureka/
+    registerWithEureka: false
+
+ribbon:
+  eureka:
+    enabled: true
+
+endpoints:
+  restart:
+    enabled: true
+  shutdown:
+    enabled: true
+  health:
+    sensitive: false
+
+server:
+  port: 8080
