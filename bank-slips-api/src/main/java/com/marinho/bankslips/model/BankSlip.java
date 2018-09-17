@@ -43,4 +43,7 @@ public class BankSlip implements Serializable {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private BankSlipStatus status;
+
+    @Transient
+    private BigDecimal fine;
 }

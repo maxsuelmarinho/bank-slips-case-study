@@ -1,5 +1,6 @@
 package com.marinho.bankslips.facade;
 
+import com.marinho.bankslips.dto.BankSlipDetailsResponse;
 import com.marinho.bankslips.dto.BankSlipPaymentRequest;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
@@ -31,9 +32,9 @@ public class BankSlipFacade {
         return convertToDto(service.findAll());
     }
 
-    public BankSlipResponse get(final String id) {
+    public BankSlipDetailsResponse get(final String id) {
         final BankSlip bankSlip = service.findByUuid(id);
-        return convertToDto(bankSlip);
+        return convertToDetails(bankSlip);
     }
 
     public void pay(final String id, final BankSlipPaymentRequest request) {
@@ -46,6 +47,10 @@ public class BankSlipFacade {
 
     private BankSlipResponse convertToDto(final BankSlip entity) {
         return modelMapper.map(entity, BankSlipResponse.class);
+    }
+
+    private BankSlipDetailsResponse convertToDetails(final BankSlip entity) {
+        return modelMapper.map(entity, BankSlipDetailsResponse.class);
     }
 
     private List<BankSlipResponse> convertToDto(List<BankSlip> entities) {

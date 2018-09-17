@@ -2,6 +2,7 @@ package com.marinho.bankslips.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
+import com.marinho.bankslips.dto.BankSlipDetailsResponse;
 import com.marinho.bankslips.dto.BankSlipPaymentRequest;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
@@ -211,7 +212,7 @@ public class ApiTests {
     public void retrieveBankSlip() throws Exception {
         final String bankSlipUuid = "qweqweqwe";
 
-        final BankSlipResponse mockResponse = BankSlipResponse.builder()
+        final BankSlipDetailsResponse mockResponse = BankSlipDetailsResponse.builder()
                 .id(bankSlipUuid)
                 .dueDate(LocalDate.of(2018, 9, 13))
                 .totalInCents(new BigDecimal("1000000001"))

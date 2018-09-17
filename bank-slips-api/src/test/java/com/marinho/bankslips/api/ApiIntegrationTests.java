@@ -48,8 +48,9 @@ public class ApiIntegrationTests {
     public void setUp() {
         bankSlip = BankSlip.builder()
                 .uuid(UUID.randomUUID().toString())
-                .totalInCents(new BigDecimal(faker.numerify("#########")))
-                .dueDate(LocalDate.now().plusDays(faker.number().numberBetween(1, 30)))
+                .totalInCents(BigDecimal.valueOf(1000L))
+                .dueDate(LocalDate.now().plusDays(faker.number().numberBetween(1, 10)))
+                .fine(BigDecimal.valueOf(5L))
                 .customer(faker.company().name())
                 .status(BankSlipStatus.PENDING)
                 .build();
@@ -172,7 +173,9 @@ public class ApiIntegrationTests {
 
         final String expected = "{id:\"" + bankSlip.getUuid() + "\"," +
                 "due_date:\"" + bankSlip.getDueDate().toString() + "\"," +
+                "payment_date:" + (bankSlip.getPaymentDate() != null ? "\"" + bankSlip.getPaymentDate().toString() + "\"" : "null") + "," +
                 "total_in_cents:" + bankSlip.getTotalInCents() + "," +
+                "fine:" + bankSlip.getFine() + "," +
                 "customer:\"" + bankSlip.getCustomer() + "\"," +
                 "status:\"PENDING\"}";
 

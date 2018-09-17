@@ -18,13 +18,25 @@ public class BankSlipService implements IBankSlipService {
     @Autowired
     private BankSlipRepository repository;
 
+    @Autowired
+    private IBankSlipFineService fineService;
+
     public List<BankSlip> findAll() {
         return this.repository.findAll();
     }
 
     public BankSlip findByUuid(final String uuid) {
-        return this.repository.findByUuid(uuid)
+        final BankSlip bankSlip = this.repository.findByUuid(uuid)
                 .orElseThrow(BankSlipNotFoundException::new);
+
+        final BigDecimal fine = fineService.calculate(
+                bankSlip.getDueDate(),
+                bankSlip.getPaymentDate(),
+                bankSlip.getTotalInCents());
+
+        bankSlip.setFine(fine);
+
+        return bankSlip;
     }
 
     public void pay(final String id, LocalDate paymentDate) {

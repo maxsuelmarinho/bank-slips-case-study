@@ -1,5 +1,6 @@
 package com.marinho.bankslips.api;
 
+import com.marinho.bankslips.dto.BankSlipDetailsResponse;
 import com.marinho.bankslips.dto.BankSlipPaymentRequest;
 import com.marinho.bankslips.dto.BankSlipRequest;
 import com.marinho.bankslips.dto.BankSlipResponse;
@@ -38,8 +39,8 @@ public class Api {
     }
 
     @GetMapping("/bankslips/{id}")
-    public Resource<BankSlipResponse> get(@PathVariable final String id) {
-        final BankSlipResponse response = facade.get(id);
+    public Resource<BankSlipDetailsResponse> get(@PathVariable final String id) {
+        final BankSlipDetailsResponse response = facade.get(id);
 
         return new Resource<>(response);
     }
