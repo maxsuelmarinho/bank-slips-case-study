@@ -1,14 +1,11 @@
 package com.marinho.bankslips.service;
 
 import com.github.javafaker.Faker;
-import com.marinho.bankslips.dto.BankSlipResponse;
 import com.marinho.bankslips.exception.BankSlipNotFoundException;
 import com.marinho.bankslips.model.BankSlip;
 import com.marinho.bankslips.model.BankSlipStatus;
 import com.marinho.bankslips.repository.BankSlipRepository;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.TestTemplate;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +15,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)

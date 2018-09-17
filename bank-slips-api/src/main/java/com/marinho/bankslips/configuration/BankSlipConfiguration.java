@@ -18,7 +18,7 @@ public class BankSlipConfiguration {
     public ModelMapper modelMapper() {
         final ModelMapper modelMapper = new ModelMapper();
         modelMapper.addConverter(bankSlipEntityToBankSlipResponseConverter);
-        return new ModelMapper();
+        return modelMapper;
     }
 
 }

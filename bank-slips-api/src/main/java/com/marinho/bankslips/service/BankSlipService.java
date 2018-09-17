@@ -31,12 +31,14 @@ public class BankSlipService implements IBankSlipService {
         final BankSlip bankSlip = findByUuid(id);
 
         bankSlip.setStatus(BankSlipStatus.PAID);
+        repository.save(bankSlip);
     }
 
     public void cancel(String id) {
         final BankSlip bankSlip = findByUuid(id);
 
         bankSlip.setStatus(BankSlipStatus.CANCELED);
+        repository.save(bankSlip);
     }
 
     @Override
