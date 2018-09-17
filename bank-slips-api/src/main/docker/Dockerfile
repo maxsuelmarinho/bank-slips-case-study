@@ -10,7 +10,8 @@ VOLUME /app/config
 
 RUN apk update && \
     apk add --no-cache \
-        gettext
+        gettext \
+        bash
 
 ADD bank-slips-api-*.jar /app/app.jar
 RUN sh -c 'touch /app/app.jar'
