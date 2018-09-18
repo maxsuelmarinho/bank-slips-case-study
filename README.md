@@ -190,10 +190,22 @@ Esse método da API altera o status do boleto para CANCELED.
 ### Pré-requisitos
 
 * [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-* [Docker](https://docs.docker.com/install/);
+* [Docker](https://docs.docker.com/install/)
 * [Docker Compose](https://docs.docker.com/compose/install/)
 * [Postman](https://www.getpostman.com/docs/v6/postman/launching_postman/installation_and_updates)
 
+### Gerando as imagens docker
+
+Para gerar as imagens docker utilize o shell script "build.sh" disponível na raiz do projeto.
+
+Usando seu terminal de preferência, execute:
+
+```
+chmod +x build.sh
+./build.sh
+```
+
+**Obs:** Todas as imagens docker necessárias estão disponíveis no [Docker Hub](https://hub.docker.com/u/maxsuelmarinho/)
 ### Executando os containers
 
 Após clonar o repositório, usando seu terminal de preferência, vá para a raiz do projeto e execute o seguinte comando:
