@@ -19,6 +19,7 @@
 /out/
 /**/out/
 /**/build/
+/**/bin/
 
 ### NetBeans ###
 /nbproject/private/
